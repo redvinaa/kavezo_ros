@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import rospy
-from geometry_msgs.msg         import PoseStamped
+from geometry_msgs.msg         import PoseStamped, Pose
 from porszilo_telepresence.srv import ClickedPoint
 from sensor_msgs.msg           import Image
 from nav_msgs.msg              import OccupancyGrid, Odometry
@@ -47,15 +47,28 @@ class Telepresence():
 
         self.getClickablePic()# fills self.clickable_pic
 
-        #  self.imagePub.publish(CvBridge().cv2_to_imgmsg(self.clickable_pic, encoding="passthrough"))
-        self.imagePub.publish(CvBridge().cv2_to_imgmsg(self.clickable_pic, encoding="bgr8"))
+        self.imagePub.publish(CvBridge().cv2_to_imgmsg(self.clickable_pic, encoding="passthrough"))
         pass
     
     #!!!!!!!!!!!!!!!!!! már csak ez nincs meg
     def getClickablePic(self):
         # calculate 2D pic with the clickable areas marked
-        self.clickable_pic = self.cv_color
-        pass
+        self.clickable_pic = self.cv_depth
+        rospy.loginfo("OccupancyGrid origin: \n{}".format(self.grid.info.origin))
+        pose = PoseStamped()
+        pose.header.frame_id = self.grid.header.frame_id
+        pose.header.stamp = rospy.Time.now()
+        rospy.loginfo("Grid frame id: {}".format(pose.header.frame_id))
+        pose.pose = self.grid.info.origin
+        self.orig_pub.publish(pose)
+
+        #  self.grid_image = Image()
+        #  self.grid_image.header = self.grid.header
+        #  self.grid_image.height = self.grid.info.height
+        #  self.grid_image.width  = self.grid.info.width
+        #  self.grid_image.data   = self.grid.data
+        #  self.cv_grid_image = CvBridge().imgmsg_to_cv2(self.grid_image, desired_encoding="passthrough")
+
 
 
     #!!!!!!!!!!!!!!!!!! meg ez
@@ -79,6 +92,9 @@ class Telepresence():
         #  rospy.loginfo("Depth width: {}, height: {}".format(self.depth.width, self.depth.height))
         rospy.loginfo("Shape: {}".format(self.cv_depth.shape))
         rospy.loginfo("Clicked depth: {}".format(self.cv_depth[self.point_y, self.point_x]))
+
+        neigh = 5
+        rospy.loginfo("Neighborhood of clicked point: \n{}".format(self.cv_depth[self.point_y-neigh:self.point_y+neigh, self.point_x-neigh:self.point_x+neigh]))
 
         #  cv2.imshow("anyad", self.cv_depth == np.nan)
         tmp = np.array(self.cv_depth)
@@ -110,7 +126,9 @@ class Telepresence():
     def main(self):
         rospy.init_node('telepresence')
     
-        freq = rospy.get_param("frequency", 10) # default 10 Hz
+        self.freq = rospy.get_param("~freq", 4) # looped at 4 Hz by default
+        self.view_angle_v = rospy.get_param("~view_angle_v")
+        self.view_angle_h = rospy.get_param("~view_angle_h")
     
         rospy.loginfo('Waiting for messages to arrive...')
         try:
@@ -131,6 +149,7 @@ class Telepresence():
         rospy.Subscriber("/move_base/global_costmap/costmap", OccupancyGrid, self.cbGrid)
         rospy.Subscriber("/odometry/filtered", Odometry, self.cbOdom)
     
+        self.orig_pub = rospy.Publisher("origin", PoseStamped, queue_size=1)
         rospy.loginfo('All messages have arrived at least once, starting publishers')
         self.goalPub  = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=5)
         self.imagePub = rospy.Publisher("/telepresence/image", Image, queue_size=5)
@@ -138,7 +157,7 @@ class Telepresence():
         # think of this as a remote function call, called by the  JS code in the browser
         self.srv_clicked_point = rospy.Service("/telepresence/clicked_point", ClickedPoint, self.cbClickedPoint)
     
-        rate = rospy.Rate(freq)
+        rate = rospy.Rate(self.freq)
         try:
             while not rospy.is_shutdown():
                 self.run()# <- this is being looped
