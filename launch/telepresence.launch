@@ -3,7 +3,7 @@
 	<node name="web_video_server"
 			pkg="web_video_server" type="web_video_server">
 		<param name="port" value="8080"/>
-		<param name="address" value="192.168.43.106"/>
+		<param name="address" value="localhost"/>
 	</node>
 
 	<node name="telepresence" 

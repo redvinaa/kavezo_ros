@@ -12,11 +12,11 @@
   </head>
 
   <body>
-		<img id="image" src="http://192.168.43.106:8080/stream?topic=/telepresence/image"
+		<img id="image" src="http://localhost:8080/stream?topic=/telepresence/image"
 				width="700" height="500" onclick="showCoords(event)"/>
 		<script>
 			var ros = new ROSLIB.Ros({
-				url: 'ws://192.168.43.106:9090'
+				url: 'ws://localhost:9090'
 			});
 
   		ros.on('connection', function() {

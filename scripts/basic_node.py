@@ -54,11 +54,11 @@ class Telepresence():
     def getClickablePic(self):
         # calculate 2D pic with the clickable areas marked
         self.clickable_pic = self.cv_depth
-        rospy.loginfo("OccupancyGrid origin: \n{}".format(self.grid.info.origin))
+        #  rospy.loginfo("OccupancyGrid origin: \n{}".format(self.grid.info.origin))
         pose = PoseStamped()
         pose.header.frame_id = self.grid.header.frame_id
         pose.header.stamp = rospy.Time.now()
-        rospy.loginfo("Grid frame id: {}".format(pose.header.frame_id))
+        #  rospy.loginfo("Grid frame id: {}".format(pose.header.frame_id))
         pose.pose = self.grid.info.origin
         self.orig_pub.publish(pose)
 
@@ -90,21 +90,34 @@ class Telepresence():
         rospy.loginfo("Clicked point: {}, {}".format(self.point_x, self.point_y))
         #  rospy.loginfo("Color width: {}, height: {}".format(self.color.width, self.color.height))
         #  rospy.loginfo("Depth width: {}, height: {}".format(self.depth.width, self.depth.height))
-        rospy.loginfo("Shape: {}".format(self.cv_depth.shape))
-        rospy.loginfo("Clicked depth: {}".format(self.cv_depth[self.point_y, self.point_x]))
+        #  rospy.loginfo("Shape: {}".format(self.cv_depth.shape))
+        #  rospy.loginfo("Clicked depth: {}".format(self.cv_depth[self.point_y, self.point_x]))
 
-        neigh = 5
-        rospy.loginfo("Neighborhood of clicked point: \n{}".format(self.cv_depth[self.point_y-neigh:self.point_y+neigh, self.point_x-neigh:self.point_x+neigh]))
+        #  neigh = 5
+        #  rospy.loginfo("Neighborhood of clicked point: \n{}".format(self.cv_depth[self.point_y-neigh:self.point_y+neigh, self.point_x-neigh:self.point_x+neigh]))
 
         #  cv2.imshow("anyad", self.cv_depth == np.nan)
-        tmp = np.array(self.cv_depth)
-        cv2.waitKey(0)
-        cv2.destroyAllWindows()
+        #  tmp = np.array(self.cv_depth)
+        #  cv2.waitKey(0)
+        #  cv2.destroyAllWindows()
 
         #########################################################################
         ####################      ezzel szarakodtunk ma      ####################
         #########################################################################
 
+        img_width  = 700
+        img_height = 500 # az index.html-ből
+
+        actual_clicked_width  = int((self.point_y - 1) * self.depth.width / img_width)
+        actual_clicked_height = int(self.point_x * self.depth.height / img_height)
+
+        rospy.loginfo("actual_clicked: {}, {}".format(actual_clicked_width, actual_clicked_height))
+        ## még ez sem működik
+
+        idx = actual_clicked_width * self.depth.width + actual_clicked_height
+        clicked_data = self.depth.data[idx]
+        rospy.loginfo("Got depth: {}".format(clicked_data))
+        rospy.loginfo("Type of got depth: {}".format(type(clicked_data)))
 
         self.goal.header.stamp = rospy.Time.now()
         #  self.goal.pose.position.x = ...
