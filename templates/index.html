@@ -22,8 +22,6 @@
   		ros.on('connection', function() {
   		  console.log('Connected to websocket server.');
 				var image = document.getElementById('image');
-				// image.width = 700
-				// image.height = 500
 	 		});
 
   		ros.on('error', function(error) {
@@ -55,9 +53,10 @@
 				console.log("Sending request...")
 
 				clickedPointSrv.callService(request, function(result) {
-					console.log("Calling service " + ckickedPointSrv.name + " success: " + result.success)
-					// választ nem kapunk, errort is dob a rosbridge_webserver node, 
-					// de az info odefele eljut és az így elég
+					console.log("Calling service " + clickedPointSrv.name + ", success: " + result.success)
+					if (!result.success) {
+						alert('Clicked point is invalid')
+					}
 				})
       }
 			
