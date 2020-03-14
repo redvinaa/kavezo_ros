@@ -77,8 +77,6 @@ class Telepresence():
 
 	cam = self.cv_color
 
-	self.clickable_pic = orig_map
-
 	cam_gray = cv2.cvtColor(cam, cv2.COLOR_BGR2GRAY)
 
 	map_cols = orig_map.shape[1]
@@ -111,6 +109,11 @@ class Telepresence():
 
 	y3 = pos_y_rot - int(round(h * math.tan((90 - view_angle_v / 2) * math.pi / 180)))  # 324
 	y4 = np.where(big_map == 255)[0][0]  # 14
+        rospy.logerr("y4 = {}".format(y4))
+        rospy.logerr("np.where(big_map == 255) = {}".format(np.where(big_map == 255)))
+        rospy.logerr("np.where(big_map == 255)[0].shape = {}".format(np.where(big_map == 255)[0].shape))
+        rospy.logerr("big_map.shape = {}".format(big_map.shape))
+        rospy.loginfo(big_map)
 
 	m = math.tan((90 - view_angle_h / 2) * math.pi / 180)  # 1.28
 	b1 = pos_y_rot + m * pos_x_rot  # 711.6
@@ -246,7 +249,7 @@ class Telepresence():
         rospy.Subscriber("/odometry/filtered", Odometry, self.cbOdom)
     
         rospy.loginfo('All messages have arrived at least once, starting publishers')
-        self.goalPub  = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=5)
+        self.goalPub  = rospy.Publisher("/porszilo/move_base/goal", PoseStamped, queue_size=5)
         self.imagePub = rospy.Publisher("/telepresence/image", Image, queue_size=5)
 
         # think of this as a remote function call, called by the  JS code in the browser
